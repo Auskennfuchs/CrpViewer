@@ -34,9 +34,8 @@ namespace CrpViewer {
             swapChain.RenderTarget.AddDepthStencil();
             swapChain.RenderTarget.Activate(renderer);
 
-            var asset = CrpExtractor.CrpDeserializer.parseFile("jet.crp");
-//            var asset = CrpExtractor.CrpDeserializer.parseFile("AKW mit Dampf.crp");
-
+//            var asset = CrpExtractor.CrpDeserializer.parseFile("jet.crp");
+            var asset = CrpExtractor.CrpDeserializer.parseFile("AKW mit Dampf.crp");
             foreach (var mesh in asset.Meshes) {
                 var m = mesh.Value;
                 normals = Buffer.Create<Vector3>(renderer.Device, BindFlags.VertexBuffer, m.normals);
@@ -85,8 +84,8 @@ namespace CrpViewer {
                     renderer.DevContext.PixelShader.Set(pShader.PixelShaderPtr);
 
                     var rasterizerStateDescription = RasterizerStateDescription.Default();
-                    rasterizerStateDescription.CullMode = CullMode.None;
-                    //                renderer.DevContext.Rasterizer.State = new RasterizerState(renderer.Device, rasterizerStateDescription);
+                    rasterizerStateDescription.CullMode = CullMode.Back;
+                    renderer.DevContext.Rasterizer.State = new RasterizerState(renderer.Device, rasterizerStateDescription);
                     renderer.DevContext.InputAssembler.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
 
                     var cameraPosition = new Vector3(0, 80, 150.0f);
@@ -99,7 +98,6 @@ namespace CrpViewer {
                     renderer.Parameters.SetViewMatrix(viewMatrix);
                     renderer.Parameters.SetProjectionMatrix(projectionMatrix);
 
-                    renderer.DevContext.OutputMerger.SetRenderTargets(swapChain.RenderTarget.DepthStencilView, swapChain.RenderTarget.View);
                     renderer.DevContext.OutputMerger.DepthStencilState = depthStencilState;
                 }
             }
