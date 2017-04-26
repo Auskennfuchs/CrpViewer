@@ -62,6 +62,13 @@ namespace CrpViewer.Renderer.Shader {
                                     }
                                     constantBuffer.AddParameter(refVar.Description.Name, refVar.Description.StartOffset, matParam);
                                 }
+                                if (type.Description.RowCount == 1 && type.Description.ColumnCount == 3) {
+                                    var vec3Param = new Vector3Parameter();
+                                    if (vec3Param.GetSize() != refVar.Description.Size) {
+                                        throw CrpRendererException.Create("Error ConstantBufferParamtersize");
+                                    }
+                                    constantBuffer.AddParameter(refVar.Description.Name, refVar.Description.StartOffset, vec3Param);
+                                }
                                 break;
                         }
                     }

@@ -31,7 +31,7 @@ namespace CrpExtractor {
                 crpAssetInfo.header = parseHeader(reader);
 
                 for (int i = 0; i < crpAssetInfo.header.numAssets; i++) {
-                    parseAssets(reader, crpAssetInfo, i);
+                    parseAssets(reader, crpAssetInfo, i, crpAssetInfo.header.assets[i]);
                 }
             } else {
                 throw new InvalidDataException("Invalid file format!");
@@ -70,7 +70,7 @@ namespace CrpExtractor {
             return output;
         }
 
-        private static void parseAssets(CrpReader reader, CrpAssetInfo crpInfo, int index) {
+        private static void parseAssets(CrpReader reader, CrpAssetInfo crpInfo, int index, CrpAssetInfoHeader headerInfo) {
             bool isNullFlag = reader.ReadBoolean();
             if (!isNullFlag) {
                 string assemblyQualifiedName = reader.ReadString();
@@ -85,7 +85,7 @@ namespace CrpExtractor {
 
                 switch (assetType) {
                     case "ColossalFramework.Importers.Image": crpInfo.Images.Add(fileName, obj); break;
-                    case "UnityEngine.Texture2D": crpInfo.Textures.Add(fileName, obj); break;
+                    case "UnityEngine.Texture2D": crpInfo.Textures.Add(headerInfo.assetChecksum, obj); break;
                     case "UnityEngine.Material": crpInfo.Materials.Add(fileName, obj); break;
                     case "UnityEngine.Mesh": crpInfo.Meshes.Add(fileName, obj); break;
                     case "BuildingInfoGen": crpInfo.InfoGens.Add(fileName, obj); break;

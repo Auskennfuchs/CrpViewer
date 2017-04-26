@@ -40,7 +40,7 @@ namespace CrpViewer.Renderer {
 
         public void SetParameter(string name, Vector3 vec) {
             if (!SetParam(name, vec, ConstantBufferParameterType.VECTOR3)) {
-                throw new NotImplementedException();
+                parameters.Add(name, new Vector3Parameter(vec));
             }
         }
         public Vector3 GetVector3Parameter(string name) {
@@ -72,7 +72,7 @@ namespace CrpViewer.Renderer {
         private bool SetParam(string name, object obj, ConstantBufferParameterType type) {
             if (parameters.ContainsKey(name)) {
                 var param = parameters[name];
-                if (param.GetType() != type) {
+                if (param.GetParamType() != type) {
                     throw CrpRendererException.Create("Wrong Parametertype expected " + type + " but was " + param.GetType());
                 }
                 param.SetValue(obj);
@@ -84,7 +84,7 @@ namespace CrpViewer.Renderer {
         private object GetParam(string name, ConstantBufferParameterType type) {
             if (parameters.ContainsKey(name)) {
                 var param = parameters[name];
-                if (param.GetType() != type) {
+                if (param.GetParamType() != type) {
                     throw CrpRendererException.Create("Wrong Parametertype expected " + type + " but was " + param.GetType());
                 }
                 return param.GetValue();

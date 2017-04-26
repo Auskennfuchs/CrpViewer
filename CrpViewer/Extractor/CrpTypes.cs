@@ -4,20 +4,6 @@ using SharpDX;
 
 namespace CrpExtractor.Types {
 
-    public struct Vector2 {
-        public float x;
-        public float y;
-
-        public Vector2(float x, float y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public override string ToString() {
-            return string.Format("X:{0} Y:{0}\n", x, y);
-        }
-    }
-
     public struct Color {
         public float r;
         public float g;
@@ -53,6 +39,9 @@ namespace CrpExtractor.Types {
         public Color[] colors;
         public Vector3[] normals;
         public int subMeshCount;
+        /*Tangents are mostly used in bump-mapped Shaders. A tangent is a unit-length vector that follows Mesh surface along horizontal (U) texture direction. 
+         * Tangents in Unity are represented as Vector4, with x,y,z components defining the vector, and w used to flip the binormal if needed.
+         */
         public Vector4[] tangents;
         public List<int> triangles = new List<int>();
         public Vector2[] uv;
@@ -77,7 +66,7 @@ namespace CrpExtractor.Types {
             sb.Append("\n");
             if (uv != null) {
                 foreach (Vector2 v in uv) {
-                    sb.Append(string.Format("vt {0:0.000000000} {1:0.000000000}\n", v.x, v.y));
+                    sb.Append(string.Format("vt {0:0.000000000} {1:0.000000000}\n", v.X, v.Y));
                 }
             }
 

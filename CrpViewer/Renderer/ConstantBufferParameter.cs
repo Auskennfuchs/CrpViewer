@@ -8,10 +8,61 @@
 
     public interface IConstantBufferParameter {
         int GetSize();
-        byte[] GetBytes();
-        void SetValue(object obj);
         object GetValue();
-        ConstantBufferParameterType GetType();
+        void SetValue(object obj);
+        byte[] GetBytes();
+        ConstantBufferParameterType GetParamType();
+    }
+
+    public abstract class BaseConstantBufferParameter<T> : IConstantBufferParameter where T: struct{
+
+        protected int size;
+
+        protected T val;
+
+        public T Value {
+            get {
+                return val;
+            }
+            set {
+                val = value;
+                UpdateBuffer();
+            }
+        }
+
+        private byte[] buffer;
+
+
+        public BaseConstantBufferParameter(int size) {
+            this.size = size;
+            buffer = new byte[size];
+        }
+
+        public BaseConstantBufferParameter(int size, T val) {
+            this.size = size;        
+            buffer = new byte[size];
+            this.val = val;
+        }    
+
+        public int GetSize() {
+            return size;
+        }
+        public byte[] GetBytes() {
+            return buffer;
+        }
+        public void SetValue(object obj) {
+            Value = (T)obj;
+        }
+        public object GetValue() {
+            return val;
+        }
+        public abstract ConstantBufferParameterType GetParamType();
+
+        private void UpdateBuffer() {
+            System.Buffer.BlockCopy(GetValArray(), 0, buffer, 0, size);
+        }
+
+        protected abstract System.Array GetValArray();
     }
 
     public class ConstantBufferParameter {

@@ -17,7 +17,7 @@ namespace CrpExtractor {
                 return DateTime.Parse(this.ReadString(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
             };
             singlarObjParser["UnityEngine.Vector2"] = () => {
-                return new Types.Vector2(this.ReadSingle(), this.ReadSingle());
+                return new Vector2(this.ReadSingle(), this.ReadSingle());
             };
             singlarObjParser["UnityEngine.Vector3"] = () => {
                 return new Vector3(this.ReadSingle(), this.ReadSingle(), this.ReadSingle());

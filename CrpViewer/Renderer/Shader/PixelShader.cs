@@ -15,6 +15,7 @@ namespace CrpViewer.Renderer.Shader {
                 using (var bytecode = ShaderBytecode.CompileFromFile(file, entryfunction, "ps_5_0", ShaderFlags.PackMatrixRowMajor, EffectFlags.None)) {
                     InputSignature = ShaderSignature.GetInputSignature(bytecode);
                     pixelShader = new PShader(Renderer.Instance.Device, bytecode);
+                    ReflectBytecode(bytecode);
                 }
             }
             catch (Exception exc) {
@@ -31,6 +32,10 @@ namespace CrpViewer.Renderer.Shader {
 
         public override void Apply(DeviceContext context, ParameterManager paramManager) {
             context.PixelShader.Set(pixelShader);
+            for (int i = 0; i < constantBuffers.Count; i++) {
+                constantBuffers[i].UpdateBuffer(context, paramManager);
+                context.PixelShader.SetConstantBuffer(i, constantBuffers[i].Buffer);
+            }
         }
     }
 }

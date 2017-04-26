@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D11;
 
@@ -13,6 +14,9 @@ namespace CrpViewer.Renderer.Shader {
         public VertexShader(string file,string entryfunction):base() {
             try {
                 using (var bytecode = ShaderBytecode.CompileFromFile(file, entryfunction, "vs_5_0", ShaderFlags.PackMatrixRowMajor, EffectFlags.None)) {
+                    if (bytecode.Message != null) {
+                        MessageBox.Show(bytecode.Message);
+                    }
                     InputSignature = ShaderSignature.GetInputSignature(bytecode);
                     VertexShaderPtr = new VShader(Renderer.Instance.Device, bytecode);
                     ReflectBytecode(bytecode);
