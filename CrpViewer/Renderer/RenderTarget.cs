@@ -37,7 +37,7 @@ namespace CrpViewer.Renderer {
                 MipLevels = 1,
                 OptionFlags = ResourceOptionFlags.None,
                 Usage = ResourceUsage.Default,
-                SampleDescription = new SampleDescription(1, 0)
+                SampleDescription = new SampleDescription(4, 0)                
             });
         }
 

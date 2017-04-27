@@ -51,7 +51,7 @@ namespace CrpViewer.Renderer {
                 IsWindowed = true,
                 ModeDescription = new ModeDescription(form.ClientSize.Width, form.ClientSize.Height, new Rational(0, 1), Format.R8G8B8A8_UNorm),
                 OutputHandle = form.Handle,
-                SampleDescription = new SampleDescription(1, 0),
+                SampleDescription = new SampleDescription(4, 0),
                 SwapEffect = SwapEffect.Discard
             };
 
