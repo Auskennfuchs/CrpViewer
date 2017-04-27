@@ -72,8 +72,8 @@ namespace CrpViewer {
             var textures = LoadTextures(asset);
             var materials = LoadMaterials(asset, textures);
 
-            vShader = new Renderer.Shader.VertexShader("shaders.hlsl", "VSMain");
-            pShader = new Renderer.Shader.PixelShader("shaders.hlsl", "PSMain");
+            vShader = new Renderer.Shader.VertexShader("../Shader/shaders.hlsl", "VSMain");
+            pShader = new Renderer.Shader.PixelShader("../Shader/shaders.hlsl", "PSMain");
             using (var inputLayout = new InputLayout(renderer.Device, vShader.InputSignature, new[] {
                 new InputElement("POSITION",0,SharpDX.DXGI.Format.R32G32B32_Float,0),
                 new InputElement("NORMAL",0,SharpDX.DXGI.Format.R32G32B32_Float,1),
