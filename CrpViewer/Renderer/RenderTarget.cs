@@ -67,6 +67,12 @@ namespace CrpViewer.Renderer {
 
         public void Activate(Renderer pipeline) {
             pipeline.DevContext.Rasterizer.SetViewport(Viewport);
+            if (DepthStencilView != null) {
+                pipeline.DevContext.OutputMerger.SetRenderTargets(DepthStencilView, View);
+                pipeline.DevContext.OutputMerger.DepthStencilState = DepthStencilState;
+            } else {
+                pipeline.DevContext.OutputMerger.SetRenderTargets(View);
+            }
         }
 
         public void Resize(int width, int height, Resource src) {
@@ -96,7 +102,7 @@ namespace CrpViewer.Renderer {
                 };
                 var depthStencilStateDescription = new DepthStencilStateDescription {
                     IsDepthEnabled = true,
-                    DepthComparison = Comparison.Less,
+                    DepthComparison = Comparison.Greater,
                     DepthWriteMask = DepthWriteMask.All,
                     IsStencilEnabled = false,
                     StencilReadMask = 0xff,

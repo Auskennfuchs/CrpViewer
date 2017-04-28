@@ -4,7 +4,17 @@ namespace CrpViewer {
 
     class Model {
 
-        private Material material;
+        public List<Material> Materials {
+            get; set;
+        }
+
+        public List<Texture> Textures {
+            get; set;
+        }
+
+        public StaticMesh Mesh {
+            get; set;
+        }
 
         public Model() {
 

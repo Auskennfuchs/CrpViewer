@@ -82,6 +82,6 @@ float4 PSMain(VertexShaderOutput input) : SV_Target
 	return float4(col,1.0f);
 
 //	return float4(bumpNormal/2.0f+0.5f,1.0f);
-//	return float4(input.Position.z / input.Position.w, 0, 0, 1);
+//	return float4(input.Position.z / input.Position.w*16.0f, input.Position.z / input.Position.w * 16.0f, input.Position.z / input.Position.w *16.0f, 1);
 //	return float4(input.Normal/2.0f+0.5f, 1.0f);
 }
