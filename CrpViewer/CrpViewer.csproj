@@ -118,6 +118,7 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Material.cs" />
+    <Compile Include="Renderer\RenderTargetGroup.cs" />
     <Compile Include="StaticMesh.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Program.cs" />
@@ -164,6 +165,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Shader\deferredCleanup.hlsl" />
+    <Content Include="Shader\deferredCombine.hlsl" />
+    <Content Include="Shader\deferredRender.hlsl" />
+    <Content Include="Shader\directionalLight.hlsl" />
     <Content Include="Shader\shaders.hlsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

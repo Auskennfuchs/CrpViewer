@@ -14,6 +14,7 @@ namespace CrpViewer {
         static void Main() {
             var form = new MainWindow();
             RenderLoop.Run(form, form.MainLoop);
+            form.CleanUp();
             form.Close();
         }
     }

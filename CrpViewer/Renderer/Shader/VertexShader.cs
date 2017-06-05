@@ -13,7 +13,11 @@ namespace CrpViewer.Renderer.Shader {
 
         public VertexShader(string file,string entryfunction):base() {
             try {
-                using (var bytecode = ShaderBytecode.CompileFromFile(file, entryfunction, "vs_5_0", ShaderFlags.PackMatrixRowMajor, EffectFlags.None)) {
+                ShaderFlags sFlags = ShaderFlags.PackMatrixRowMajor;
+#if DEBUG
+                sFlags |= ShaderFlags.Debug;
+#endif
+                using (var bytecode = ShaderBytecode.CompileFromFile(file, entryfunction, "vs_5_0", sFlags, EffectFlags.None)) {
                     if (bytecode.Message != null) {
                         MessageBox.Show(bytecode.Message);
                     }

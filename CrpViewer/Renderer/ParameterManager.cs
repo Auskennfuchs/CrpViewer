@@ -13,6 +13,8 @@ namespace CrpViewer.Renderer {
         private static string VIEWMATRIX = "viewMatrix";
         private static string PROJMATRIX = "projMatrix";
         private static string WORLDVIEWPROJMATRIX = "worldViewProjMatrix";
+        private static string VIEWPROJMATRIX = "viewProjMatrix";
+        private static string INV_VIEWPROJMATRIX = "invViewProjMatrix";
 
         public ParameterManager() {
             SetParameter(WORLDMATRIX, Matrix.Identity);
@@ -96,7 +98,11 @@ namespace CrpViewer.Renderer {
             Matrix world = (Matrix)GetParam(WORLDMATRIX, ConstantBufferParameterType.MATRIX);
             Matrix view = (Matrix)GetParam(VIEWMATRIX, ConstantBufferParameterType.MATRIX);
             Matrix proj = (Matrix)GetParam(PROJMATRIX, ConstantBufferParameterType.MATRIX);
+            Matrix viewProj = view * proj;
+            Matrix invViewProj = Matrix.Invert(viewProj);
             SetParameter(WORLDVIEWPROJMATRIX, world * view * proj);
+            SetParameter(VIEWPROJMATRIX, viewProj);
+            SetParameter(INV_VIEWPROJMATRIX, invViewProj);
         }
     }
 }

@@ -67,11 +67,11 @@ namespace CrpViewer.Renderer {
 
         public void Activate(Renderer pipeline) {
             pipeline.DevContext.Rasterizer.SetViewport(Viewport);
+            pipeline.DevContext.OutputMerger.SetRenderTargets(DepthStencilView, View);
             if (DepthStencilView != null) {
-                pipeline.DevContext.OutputMerger.SetRenderTargets(DepthStencilView, View);
                 pipeline.DevContext.OutputMerger.DepthStencilState = DepthStencilState;
             } else {
-                pipeline.DevContext.OutputMerger.SetRenderTargets(View);
+                pipeline.DevContext.OutputMerger.DepthStencilState = null;
             }
         }
 

@@ -7,7 +7,7 @@ using DXSwapChain = SharpDX.DXGI.SwapChain;
 using Resource = SharpDX.Direct3D11.Resource;
 
 namespace CrpViewer.Renderer {
-    class SwapChain {
+    class SwapChain : Events.EventManager, IDisposable{
         private DXSwapChain swapChain;
 
         private RenderTarget renderTarget;
@@ -28,7 +28,7 @@ namespace CrpViewer.Renderer {
 
         private bool isResizing = false;
 
-//        public event EventHandler<SResizeEvent> Resize;
+        public event EventHandler<Events.SResizeEvent> Resize;
 
         public SwapChain(Form form)
             : this(form, 0, 0) { }
@@ -125,13 +125,14 @@ namespace CrpViewer.Renderer {
                 renderTarget.Resize(width, height, resource);
             }
 
-/*            Resize(this, new SResizeEvent {
+            if (Resize != null) {
+                Resize(this, new Events.SResizeEvent {
+                    Size = new System.Drawing.Size(width, height)
+                });
+            }
+            ProcessEvent(new Events.EventResize(new Events.SResizeEvent {
                 Size = new System.Drawing.Size(width, height)
-            });
-
-            ProcessEvent(new EventResize(new SResizeEvent {
-                Size = new System.Drawing.Size(width, height)
-            }));*/
+            }));
         }
     }
 }

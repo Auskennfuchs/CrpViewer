@@ -5,16 +5,17 @@ using SharpDX.Mathematics.Interop;
 using SharpDX.Direct3D11;
 using SharpDX;
 using CrpViewer.Events;
+using SharpDX.DXGI;
 
 namespace CrpViewer {
     public partial class MainWindow : Form {
 
-        private SwapChain swapChain;
+        private Renderer.SwapChain swapChain;
 
         private Renderer.Renderer renderer;
 
-        private Renderer.Shader.VertexShader vShader;
-        private Renderer.Shader.PixelShader pShader;
+        private Renderer.Shader.VertexShader vShader, vDeferredCleanup, vDeferredDraw, vDeferredCombine, vDirectionalLight;
+        private Renderer.Shader.PixelShader pShader, pDeferredCleanup, pDeferredDraw, pDeferredCombine, pDirectionalLight;
 
         Model model;
 
@@ -32,11 +33,11 @@ namespace CrpViewer {
         int fpsCount;
         float fpsTimeCount;
 
+        RenderTargetGroup deferredRT, lightBufferRT;
+
         CrpViewer.Events.EventManager eventManager = new CrpViewer.Events.EventManager();
 
         private void MainWindow_SizeChanged(object sender, EventArgs e) {
-            cam.SetProjection(1000.0f, 0.1f, (float)this.ClientSize.Width / (float)this.ClientSize.Height, (float)Math.PI / 4.0f);
-            renderer.Parameters.SetProjectionMatrix(cam.ProjectionMatrix);
         }
 
         public MainWindow() {
@@ -45,29 +46,32 @@ namespace CrpViewer {
             AddEvents();
 
             renderer = new Renderer.Renderer();
-            swapChain = new SwapChain(this);
-            swapChain.RenderTarget.AddDepthStencil();
+            swapChain = new Renderer.SwapChain(this);
+//            swapChain.RenderTarget.AddDepthStencil();
             swapChain.RenderTarget.Activate(renderer);
 
             loader = new CrpLoader(renderer.Device);
 
             texLoader = new TextureLoader(renderer.Device);
 
-//            var asset = CrpExtractor.CrpDeserializer.parseFile("Coconut Tree Tall.crp");
-//            var asset = CrpExtractor.CrpDeserializer.parseFile("DP's Harbor.crp");
+//            model = loader.LoadCrp(s("Coconut Tree Tall.crp");
+//            model = loader.LoadCrp("DP's Harbor.crp");
             model = loader.LoadCrp("AKW mit Dampf.crp");
-//            var asset = CrpExtractor.CrpDeserializer.parseFile("Arjan's Medieval Keep (Uni).crp");
-//            var asset = CrpExtractor.CrpDeserializer.parseFile("jet.crp");
+//            model = loader.LoadCrp("Arjan's Medieval Keep (Uni).crp");
+//            model = loader.LoadCrp("jet.crp");
 
             vShader = new Renderer.Shader.VertexShader("../Shader/shaders.hlsl", "VSMain");
             pShader = new Renderer.Shader.PixelShader("../Shader/shaders.hlsl", "PSMain");
+            vDeferredCleanup = new Renderer.Shader.VertexShader("../Shader/deferredCleanup.hlsl", "VSMain");
+            pDeferredCleanup = new Renderer.Shader.PixelShader("../Shader/deferredCleanup.hlsl", "PSMain");
+            vDeferredDraw = new Renderer.Shader.VertexShader("../Shader/deferredRender.hlsl", "VSMain");
+            pDeferredDraw = new Renderer.Shader.PixelShader("../Shader/deferredRender.hlsl", "PSMain");
+            vDeferredCombine = new Renderer.Shader.VertexShader("../Shader/deferredCombine.hlsl", "VSMain");
+            pDeferredCombine = new Renderer.Shader.PixelShader("../Shader/deferredCombine.hlsl", "PSMain");
+            vDirectionalLight = new Renderer.Shader.VertexShader("../Shader/directionalLight.hlsl", "VSMain");
+            pDirectionalLight = new Renderer.Shader.PixelShader("../Shader/directionalLight.hlsl", "PSMain");
             using (var inputLayout = new InputLayout(renderer.Device, vShader.InputSignature, model.Mesh.Elements.ToArray())) {
-                renderer.DevContext.InputAssembler.SetVertexBuffers(0, model.Mesh.BufferBindings.ToArray());
-                renderer.DevContext.InputAssembler.SetIndexBuffer(model.Mesh.IndexBuffer, SharpDX.DXGI.Format.R32_UInt, 0);
                 renderer.DevContext.InputAssembler.InputLayout = inputLayout;
-
-                renderer.DevContext.VertexShader.Set(vShader.VertexShaderPtr);
-                renderer.DevContext.PixelShader.Set(pShader.PixelShaderPtr);
 
                 var rasterizerStateDescription = RasterizerStateDescription.Default();
                 rasterizerStateDescription.CullMode = CullMode.None;
@@ -75,7 +79,13 @@ namespace CrpViewer {
                 renderer.DevContext.InputAssembler.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
 
                 cam = new Camera();
-                cam.SetProjection(1000.0f, 0.1f, (float)this.ClientSize.Width / (float)this.ClientSize.Height, (float)Math.PI / 4.0f);
+                cam.SetProjection(0.1f,1000.0f, (float)this.ClientSize.Width / (float)this.ClientSize.Height, (float)Math.PI / 4.0f);
+
+                swapChain.Resize += (o, e) => {
+                    cam.SetProjection(0.1f,1000.0f,  (float)this.ClientSize.Width / (float)this.ClientSize.Height, (float)Math.PI / 4.0f);
+                    renderer.Parameters.SetProjectionMatrix(cam.ProjectionMatrix);
+                };
+
                 var fm = new FreeMove(eventManager);
                 fm.Speed = 5.0f;
                 cam.AddComponent(new FreeLook(eventManager))
@@ -105,6 +115,24 @@ namespace CrpViewer {
                 renderer.DevContext.PixelShader.SetShaderResource(1, model.Materials[0].GetTexture(TEXTURE_TYPE.NORMAL).SRV);
                 timer.Start();
             }
+
+            deferredRT = new RenderTargetGroup(swapChain,Format.R8G8B8A8_UNorm);
+            deferredRT.AddRenderTarget(SharpDX.DXGI.Format.R8G8B8A8_UNorm);
+            deferredRT.AddRenderTarget(SharpDX.DXGI.Format.R16G16B16A16_Float);
+            deferredRT.AddDepthStencil();
+
+            lightBufferRT = new RenderTargetGroup(swapChain, Format.R8G8B8A8_UNorm);
+        }
+
+        public void CleanUp() {
+            vShader.Dispose();
+            pShader.Dispose();
+            vDeferredCleanup.Dispose();
+            pDeferredCleanup.Dispose();
+            vDeferredDraw.Dispose();
+            pDeferredDraw.Dispose();
+            deferredRT.Dispose();
+            renderer.Dispose();
         }
 
         public void MainLoop() {
@@ -112,32 +140,74 @@ namespace CrpViewer {
             float elapsed = timer.Restart();
             fpsTimeCount += elapsed;
             if (fpsTimeCount > 1.0f) {
-                this.Text = (fpsTimeCount/fpsCount*1000.0f).ToString();
+                var fps = fpsCount / fpsTimeCount;
+                var renderTime = (fpsTimeCount / fpsCount * 1000.0f);
+                this.Text = renderTime.ToString()+"ms ("+fps.ToString()+" fps)";
                 fpsTimeCount = 0;
                 fpsCount = 0;
             }
             cam.OnUpdate(elapsed);
             renderer.Parameters.SetParameter("viewPosition", cam.Transform.GetTransformedPosition());
             var worldMatrix = Matrix.Multiply(Matrix.RotationY(0.2f*elapsed),renderer.Parameters.GetMatrixParameter("worldMatrix"));
-            renderer.Parameters.SetWorldMatrix(worldMatrix);
+//            renderer.Parameters.SetWorldMatrix(worldMatrix);
             renderer.Parameters.SetViewMatrix(cam.ViewMatrix);
 
-            lightRot = lightRot*Quaternion.RotationYawPitchRoll(0.0f * elapsed, 0, 0);
+            lightRot = Quaternion.RotationYawPitchRoll(0.2f * elapsed, 0, 0);
 
             var light = Vector3.Transform(lightDir, lightRot);
 
-//            lightDir = Vector3.Multiply(Quaternion.RotationYawPitchRoll(0.02f*elapsed,0,0);
+            lightDir = light;
             renderer.Parameters.SetParameter("lightDir", light);
+            renderer.DevContext.InputAssembler.SetVertexBuffers(0, model.Mesh.BufferBindings.ToArray());
+            renderer.DevContext.InputAssembler.SetIndexBuffer(model.Mesh.IndexBuffer, SharpDX.DXGI.Format.R32_UInt, 0);
 
-            vShader.Apply(renderer.DevContext, renderer.Parameters);
+            /*vShader.Apply(renderer.DevContext, renderer.Parameters);
             pShader.Apply(renderer.DevContext, renderer.Parameters);
             //rendering here
-            renderer.DevContext.ClearRenderTargetView(swapChain.RenderTarget.View, new RawColor4(0.7f, .7f, 0.7f, 1.0f));
-            renderer.DevContext.ClearDepthStencilView(swapChain.RenderTarget.DepthStencilView, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 0.0f, 0);
-            renderer.DevContext.OutputMerger.SetRenderTargets(swapChain.RenderTarget.DepthStencilView, swapChain.RenderTarget.View);
-            swapChain.RenderTarget.Activate(renderer);
+                        renderer.DevContext.VertexShader.Set(vShader.VertexShaderPtr);
+                        renderer.DevContext.PixelShader.Set(pShader.PixelShaderPtr);
+                        renderer.DevContext.ClearRenderTargetView(swapChain.RenderTarget.View, new RawColor4(0.7f, .7f, 0.7f, 1.0f));
+                        renderer.DevContext.ClearDepthStencilView(swapChain.RenderTarget.DepthStencilView, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 0.0f, 0);           
+                        renderer.DevContext.OutputMerger.SetRenderTargets(swapChain.RenderTarget.DepthStencilView, swapChain.RenderTarget.View);
+                        renderer.DevContext.DrawIndexed(model.Mesh.NumIndices, 0, 0);*/
+
+            deferredRT.Activate(renderer,false);
+            CleanDeferredTargets();
+            deferredRT.Activate(renderer);
+            vDeferredDraw.Apply(renderer.DevContext, renderer.Parameters);
+            pDeferredDraw.Apply(renderer.DevContext, renderer.Parameters);
+            renderer.DevContext.PixelShader.SetShaderResource(0, model.Materials[0].GetTexture(TEXTURE_TYPE.DIFFUSE).SRV);
+            renderer.DevContext.PixelShader.SetShaderResource(1, model.Materials[0].GetTexture(TEXTURE_TYPE.NORMAL).SRV);
             renderer.DevContext.DrawIndexed(model.Mesh.NumIndices, 0, 0);
+
+            //lightBuffer aufbauen
+            swapChain.RenderTarget.Activate(renderer);
+            vDirectionalLight.Apply(renderer.DevContext, renderer.Parameters);
+            pDirectionalLight.Apply(renderer.DevContext, renderer.Parameters);
+            renderer.DevContext.PixelShader.SetShaderResource(0, deferredRT.ShaderResourceViews[0]);
+            renderer.DevContext.PixelShader.SetShaderResource(1, deferredRT.ShaderResourceViews[1]);
+            renderer.DevContext.PixelShader.SetShaderResource(2, deferredRT.ShaderResourceViews[2]);
+            renderer.DevContext.Draw(3, 0);
+
+/*            swapChain.RenderTarget.Activate(renderer);
+            renderer.DevContext.VertexShader.Set(vDeferredCombine.VertexShaderPtr);
+            renderer.DevContext.PixelShader.Set(pDeferredCombine.PixelShaderPtr);
+            renderer.DevContext.PixelShader.SetShaderResource(0, deferredRT.ShaderResourceViews[0]);
+            renderer.DevContext.PixelShader.SetShaderResource(1, lightBufferRT.ShaderResourceViews[0]);
+            renderer.DevContext.Draw(3, 0);*/
+//            renderer.DevContext.PixelShader.SetShaderResource(0, null);
+//            renderer.DevContext.PixelShader.SetShaderResource(1, null);
+
+
             swapChain.Present();
+        }
+
+        private void CleanDeferredTargets() {
+            renderer.DevContext.ClearDepthStencilView(deferredRT.DepthStencilView, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
+            renderer.DevContext.VertexShader.Set(vDeferredCleanup.VertexShaderPtr);
+            renderer.DevContext.PixelShader.Set(pDeferredCleanup.PixelShaderPtr);
+            renderer.DevContext.InputAssembler.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
+            renderer.DevContext.Draw(3, 0);
         }
 
         private void AddEvents() {

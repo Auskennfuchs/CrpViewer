@@ -12,7 +12,11 @@ namespace CrpViewer.Renderer.Shader {
 
         public PixelShader(string file, string entryfunction):base() {
             try {
-                using (var bytecode = ShaderBytecode.CompileFromFile(file, entryfunction, "ps_5_0", ShaderFlags.PackMatrixRowMajor, EffectFlags.None)) {
+                ShaderFlags sFlags = ShaderFlags.PackMatrixRowMajor;
+#if DEBUG
+                sFlags |= ShaderFlags.Debug;
+#endif
+                using (var bytecode = ShaderBytecode.CompileFromFile(file, entryfunction, "ps_5_0", sFlags, EffectFlags.None)) {
                     InputSignature = ShaderSignature.GetInputSignature(bytecode);
                     pixelShader = new PShader(Renderer.Instance.Device, bytecode);
                     ReflectBytecode(bytecode);
