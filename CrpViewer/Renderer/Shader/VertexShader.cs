@@ -40,9 +40,9 @@ namespace CrpViewer.Renderer.Shader {
 
         public override void Apply(DeviceContext context, ParameterManager paramManager) {
             context.VertexShader.Set(VertexShaderPtr);
-            for(int i=0;i<constantBuffers.Count;i++) {
-                constantBuffers[i].UpdateBuffer(context, paramManager);
-                context.VertexShader.SetConstantBuffer(i,constantBuffers[i].Buffer);
+            for(int i=0;i<ConstantBuffers.Count;i++) {
+                ConstantBuffers[i].UpdateBuffer(context, paramManager);
+                context.VertexShader.SetConstantBuffer(i,ConstantBuffers[i].Buffer);
             }
         }
     }

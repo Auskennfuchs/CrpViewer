@@ -11,7 +11,9 @@ namespace CrpViewer.Renderer.Shader {
 
         private static int ShaderIdCounter = 1;
         
-        protected List<ConstantBuffer> constantBuffers = new List<ConstantBuffer>();
+        public List<ConstantBuffer> ConstantBuffers {
+            get; private set;
+        }
 
         public ShaderSignature InputSignature {
             get; protected set;
@@ -23,14 +25,15 @@ namespace CrpViewer.Renderer.Shader {
 
         public ShaderBase() {
             ID = ShaderIdCounter++;
+            ConstantBuffers = new List<ConstantBuffer>();
         }
 
         public void Dispose() {
             if(InputSignature!=null) {
                 InputSignature.Dispose();
             }
-            if(constantBuffers!=null) {
-                foreach(ConstantBuffer cb in constantBuffers) {
+            if(ConstantBuffers!=null) {
+                foreach(ConstantBuffer cb in ConstantBuffers) {
                     cb.Dispose();
                 }
             }
@@ -39,7 +42,7 @@ namespace CrpViewer.Renderer.Shader {
         public abstract void Apply(DeviceContext context, ParameterManager paramManager);
 
         public void SetParameterMatrix(string name,Matrix m) {
-            foreach(ConstantBuffer cb in constantBuffers) {
+            foreach(ConstantBuffer cb in ConstantBuffers) {
                 cb.SetParameterMatrix(name, m);
             }
         }
@@ -72,7 +75,7 @@ namespace CrpViewer.Renderer.Shader {
                                 break;
                         }
                     }
-                    constantBuffers.Add(constantBuffer);
+                    ConstantBuffers.Add(constantBuffer);
                 }
             }
         }

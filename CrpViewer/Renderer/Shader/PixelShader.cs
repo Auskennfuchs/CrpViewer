@@ -36,9 +36,9 @@ namespace CrpViewer.Renderer.Shader {
 
         public override void Apply(DeviceContext context, ParameterManager paramManager) {
             context.PixelShader.Set(pixelShader);
-            for (int i = 0; i < constantBuffers.Count; i++) {
-                constantBuffers[i].UpdateBuffer(context, paramManager);
-                context.PixelShader.SetConstantBuffer(i, constantBuffers[i].Buffer);
+            for (int i = 0; i < ConstantBuffers.Count; i++) {
+                ConstantBuffers[i].UpdateBuffer(context, paramManager);
+                context.PixelShader.SetConstantBuffer(i, ConstantBuffers[i].Buffer);
             }
         }
     }

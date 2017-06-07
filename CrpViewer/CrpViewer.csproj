@@ -119,6 +119,13 @@
     </Compile>
     <Compile Include="Material.cs" />
     <Compile Include="Renderer\RenderTargetGroup.cs" />
+    <Compile Include="Renderer\Stages\PixelShaderStage.cs" />
+    <Compile Include="Renderer\Stages\ShaderStage.cs" />
+    <Compile Include="Renderer\Stages\ShaderStageState.cs" />
+    <Compile Include="Renderer\Stages\Stage.cs" />
+    <Compile Include="Renderer\Stages\StateArrayMonitor.cs" />
+    <Compile Include="Renderer\Stages\StateMonitor.cs" />
+    <Compile Include="Renderer\Stages\VertexShaderStage.cs" />
     <Compile Include="StaticMesh.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Program.cs" />
