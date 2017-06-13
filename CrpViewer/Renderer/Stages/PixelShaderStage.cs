@@ -15,5 +15,9 @@ namespace CrpViewer.Renderer.Stages {
         protected override void BindConstantBuffers(DeviceContext dc, ParameterManager paramManager) {
             dc.PixelShader.SetConstantBuffers(DesiredState.ConstantBuffer.StartSlot, DesiredState.ConstantBuffer.Range, cBuffers);
         }
+
+        protected override void BindShaderResources(DeviceContext dc) {
+            dc.PixelShader.SetShaderResources(DesiredState.Resources.StartSlot, DesiredState.Resources.Range, DesiredState.Resources.ChangedStates);
+        }
     }
 }

@@ -1,11 +1,11 @@
-﻿using CrpViewer.Renderer.Shader;
-using SharpDX.Direct3D11;
+﻿using SharpDX.Direct3D11;
 
 namespace CrpViewer.Renderer.Stages {
 
     public abstract class ShaderStage : Stage<ShaderStageState> {
 
-        protected SharpDX.Direct3D11.Buffer[] cBuffers = new SharpDX.Direct3D11.Buffer[128];
+        protected SharpDX.Direct3D11.Buffer[] cBuffers = new SharpDX.Direct3D11.Buffer[ShaderStageState.NUM_CONSTANTBUFFERS];
+        protected SharpDX.Direct3D11.ShaderResourceView[] SRVs = new ShaderResourceView[ShaderStageState.NUM_SHADERRESOURCES];
 
         public ShaderStage() : base() {
         }
@@ -19,10 +19,14 @@ namespace CrpViewer.Renderer.Stages {
                 UpdateConstantBufferArray();
                 BindConstantBuffers(dc, paramManager);
             }
+            if(DesiredState.Resources.NeedUpdate) {
+                BindShaderResources(dc);
+            }
         }
 
         protected abstract void BindShader(DeviceContext dc, ParameterManager paramManager);
         protected abstract void BindConstantBuffers(DeviceContext dc, ParameterManager paramManager);
+        protected abstract void BindShaderResources(DeviceContext dc);
 
         public void UpdateConstantBufferParameter(DeviceContext dc, ParameterManager paramManager) {
             for (var i = 0; i < DesiredState.ConstantBuffer.NumSlots; i++) {

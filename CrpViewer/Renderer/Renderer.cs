@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using SharpDX.Direct3D11;
 
+using InputAssemblerStage = CrpViewer.Renderer.Stages.InputAssemblerStage;
 using VertexShaderStage = CrpViewer.Renderer.Stages.VertexShaderStage;
 using PixelShaderStage = CrpViewer.Renderer.Stages.PixelShaderStage;
 using VertexShader = CrpViewer.Renderer.Shader.VertexShader;
 using PixelShader = CrpViewer.Renderer.Shader.PixelShader;
+using SharpDX.Direct3D;
 
 namespace CrpViewer.Renderer {
     public class Renderer : IDisposable{
@@ -36,6 +38,10 @@ namespace CrpViewer.Renderer {
             get; private set;
         }
 
+        public InputAssemblerStage InputAssemblerStage {
+            get; private set;
+        }
+
         public Renderer() {
             Instance = this;
             DeviceCreationFlags dcf = DeviceCreationFlags.None;
@@ -50,6 +56,7 @@ namespace CrpViewer.Renderer {
 
             VertexShaderStage = new VertexShaderStage();
             PixelShaderStage = new PixelShaderStage();
+            InputAssemblerStage = new InputAssemblerStage();
         }
 
         public void Dispose() {
@@ -79,15 +86,31 @@ namespace CrpViewer.Renderer {
         }
 
         public void ApplyResources(ParameterManager paramManager) {
+            InputAssemblerStage.ApplyDesiredState(DevContext, paramManager);
             VertexShaderStage.ApplyDesiredState(DevContext, paramManager);
             PixelShaderStage.ApplyDesiredState(DevContext, paramManager);
-//            InputAssemblerStage.ApplyDesiredState(DevContext, paramManager);
         }
 
         public void ClearResources() {
+//            InputAssemblerStage.ClearDesiredState();
             VertexShaderStage.ClearDesiredState();
             PixelShaderStage.ClearDesiredState();
-//            InputAssemblerStage.ClearDesiredState();
+        }
+
+        public void Draw(PrimitiveTopology primType, InputLayout inputLayout, int vertexCount, int startVertex=0) {
+            InputAssemblerStage.ClearDesiredState();
+            InputAssemblerStage.DesiredState.PrimitiveTopology.State = primType;
+            InputAssemblerStage.DesiredState.InputLayout.State = inputLayout;
+            InputAssemblerStage.ApplyDesiredState(DevContext,Parameters);
+            DevContext.Draw(vertexCount, startVertex);
+        }
+
+        public void DrawIndexed(PrimitiveTopology primType, InputLayout inputLayout, int indexCount, int startIndex=0, int startVertex=0) {
+            InputAssemblerStage.ClearDesiredState();
+            InputAssemblerStage.DesiredState.PrimitiveTopology.State = primType;
+            InputAssemblerStage.DesiredState.InputLayout.State = inputLayout;
+            InputAssemblerStage.ApplyDesiredState(DevContext, Parameters);
+            DevContext.DrawIndexed(indexCount,startIndex, startVertex);
         }
     }
 }

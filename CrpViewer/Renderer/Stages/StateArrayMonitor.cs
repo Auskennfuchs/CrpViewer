@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CrpViewer.Renderer.Stages {
     public class TStateArrayMonitor<T> where T : class {
@@ -33,12 +29,29 @@ namespace CrpViewer.Renderer.Stages {
             get; private set;
         }
 
+        private T[] changedStates;
+
+        public T[] ChangedStates {
+            get {
+                if(Range==0) {
+                    return null;
+                }
+                if (NeedUpdate) {
+                    for (var i = 0; i < Range; i++) {
+                        changedStates[i] = States[StartSlot + i];
+                    }
+                }
+                return changedStates;
+            }
+        }
+
         public TStateArrayMonitor<T> Sister {
             get; set;
         }
 
         public TStateArrayMonitor(int numSlots, T initialState) {
             States = new T[numSlots];
+            changedStates = new T[numSlots];
             this.initialState = initialState;
             NumSlots = numSlots;
             ResetTracking();
@@ -74,6 +87,7 @@ namespace CrpViewer.Renderer.Stages {
         public void InitializeState() {
             for (int i = 0; i < NumSlots; i++) {
                 States[i] = initialState;
+                changedStates[i] = initialState;
             }
         }
     }

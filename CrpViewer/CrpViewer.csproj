@@ -118,7 +118,10 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Material.cs" />
+    <Compile Include="Renderer\Material.cs" />
     <Compile Include="Renderer\RenderTargetGroup.cs" />
+    <Compile Include="Renderer\Stages\InputAssemblerStage.cs" />
+    <Compile Include="Renderer\Stages\InputAssemblerStageState.cs" />
     <Compile Include="Renderer\Stages\PixelShaderStage.cs" />
     <Compile Include="Renderer\Stages\ShaderStage.cs" />
     <Compile Include="Renderer\Stages\ShaderStageState.cs" />

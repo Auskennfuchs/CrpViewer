@@ -17,6 +17,8 @@ namespace CrpViewer {
         private Renderer.Shader.VertexShader vShader, vDeferredCleanup, vDeferredDraw, vDeferredCombine, vDirectionalLight;
         private Renderer.Shader.PixelShader pShader, pDeferredCleanup, pDeferredDraw, pDeferredCombine, pDirectionalLight;
 
+        private InputLayout inputLayout;
+
         Model model;
 
         private TextureLoader texLoader;
@@ -85,36 +87,34 @@ namespace CrpViewer {
                 .AddComponent(fm);
             cam.Transform.Position = new Vector3(0, 30, -100.0f);
 
-            using (var inputLayout = new InputLayout(renderer.Device, vShader.InputSignature, model.Mesh.Elements.ToArray())) {
-                renderer.DevContext.InputAssembler.InputLayout = inputLayout;
+            inputLayout = new InputLayout(renderer.Device, vShader.InputSignature, model.Mesh.Elements.ToArray());
+            renderer.InputAssemblerStage.DesiredState.InputLayout.State = inputLayout;
 
-                var rasterizerStateDescription = RasterizerStateDescription.Default();
-                rasterizerStateDescription.CullMode = CullMode.None;
-                renderer.DevContext.Rasterizer.State = new RasterizerState(renderer.Device, rasterizerStateDescription);
-                renderer.DevContext.InputAssembler.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
+            var rasterizerStateDescription = RasterizerStateDescription.Default();
+            rasterizerStateDescription.CullMode = CullMode.None;
+            renderer.DevContext.Rasterizer.State = new RasterizerState(renderer.Device, rasterizerStateDescription);
 
-                var worldMatrix = Matrix.Identity;
-                renderer.Parameters.SetWorldMatrix(worldMatrix);
-                renderer.Parameters.SetViewMatrix(cam.ViewMatrix);
-                renderer.Parameters.SetProjectionMatrix(cam.ProjectionMatrix);
+            var worldMatrix = Matrix.Identity;
+            renderer.Parameters.SetWorldMatrix(worldMatrix);
+            renderer.Parameters.SetViewMatrix(cam.ViewMatrix);
+            renderer.Parameters.SetProjectionMatrix(cam.ProjectionMatrix);
 
-                var samplerStateDescription = new SamplerStateDescription {
-                    AddressU = TextureAddressMode.Wrap,
-                    AddressV = TextureAddressMode.Wrap,
-                    AddressW = TextureAddressMode.Wrap,
-                    Filter = Filter.Anisotropic,
-                    MaximumAnisotropy = 16,
-                };
-                var samplerState = new SamplerState(renderer.Device, samplerStateDescription);
-                renderer.DevContext.PixelShader.SetSampler(0, samplerState);
-                renderer.DevContext.PixelShader.SetSampler(1, new SamplerState(renderer.Device, new SamplerStateDescription {
-                    AddressU = TextureAddressMode.Clamp,
-                    AddressV = TextureAddressMode.Clamp,
-                    AddressW = TextureAddressMode.Clamp,
-                    Filter = Filter.MinMagMipLinear
-                }));
-                timer.Start();
-            }
+            var samplerStateDescription = new SamplerStateDescription {
+                AddressU = TextureAddressMode.Wrap,
+                AddressV = TextureAddressMode.Wrap,
+                AddressW = TextureAddressMode.Wrap,
+                Filter = Filter.Anisotropic,
+                MaximumAnisotropy = 16,
+            };
+            var samplerState = new SamplerState(renderer.Device, samplerStateDescription);
+            renderer.DevContext.PixelShader.SetSampler(0, samplerState);
+            renderer.DevContext.PixelShader.SetSampler(1, new SamplerState(renderer.Device, new SamplerStateDescription {
+                AddressU = TextureAddressMode.Clamp,
+                AddressV = TextureAddressMode.Clamp,
+                AddressW = TextureAddressMode.Clamp,
+                Filter = Filter.MinMagMipLinear
+            }));
+            timer.Start();
 
             deferredRT = new RenderTargetGroup(swapChain,Format.R8G8B8A8_UNorm);
             deferredRT.AddRenderTarget(SharpDX.DXGI.Format.R8G8B8A8_UNorm);
@@ -123,6 +123,7 @@ namespace CrpViewer {
         }
 
         public void CleanUp() {
+            inputLayout.Dispose();
             vShader.Dispose();
             pShader.Dispose();
             vDeferredCleanup.Dispose();
@@ -164,16 +165,15 @@ namespace CrpViewer {
             deferredRT.Activate(renderer);
             renderer.SetVertexShader(vDeferredDraw);
             renderer.SetPixelShader(pDeferredDraw);
-            renderer.DevContext.PixelShader.SetShaderResource(0, model.Materials[0].GetTexture(TEXTURE_TYPE.DIFFUSE).SRV);
-            renderer.DevContext.PixelShader.SetShaderResource(1, model.Materials[0].GetTexture(TEXTURE_TYPE.NORMAL).SRV);
+            renderer.PixelShaderStage.DesiredState.Resources.SetState(0, model.Materials[0].GetTexture(TEXTURE_TYPE.DIFFUSE).SRV);
+            renderer.PixelShaderStage.DesiredState.Resources.SetState(1, model.Materials[0].GetTexture(TEXTURE_TYPE.NORMAL).SRV);
             renderer.ApplyResources(renderer.Parameters);
             for (var j = 0; j < 3; j++) {
                 for (var i = 0; i < 3; i++) {
                     worldMatrix = Matrix.Translation(i * 130.0f, 0, j * 100.0f);
                     renderer.Parameters.SetWorldMatrix(worldMatrix);
-//                    renderer.VertexShaderStage.DesiredState.Shader.State.Apply(renderer.DevContext, renderer.Parameters);
                     renderer.ApplyResources(renderer.Parameters);
-                    renderer.DevContext.DrawIndexed(model.Mesh.NumIndices, 0, 0);
+                    renderer.DrawIndexed(SharpDX.Direct3D.PrimitiveTopology.TriangleList, inputLayout, model.Mesh.NumIndices, 0, 0);
                 }
             }
 
@@ -181,12 +181,11 @@ namespace CrpViewer {
             swapChain.RenderTarget.Activate(renderer);
             renderer.SetVertexShader(vDirectionalLight);
             renderer.SetPixelShader(pDirectionalLight);
+            renderer.PixelShaderStage.DesiredState.Resources.SetState(0, deferredRT.ShaderResourceViews[0]);
+            renderer.PixelShaderStage.DesiredState.Resources.SetState(1, deferredRT.ShaderResourceViews[1]);
+            renderer.PixelShaderStage.DesiredState.Resources.SetState(2, deferredRT.ShaderResourceViews[2]);
             renderer.ApplyResources(renderer.Parameters);
-//            renderer.PixelShaderStage.DesiredState.Shader.State.Apply(renderer.DevContext, renderer.Parameters);
-            renderer.DevContext.PixelShader.SetShaderResource(0, deferredRT.ShaderResourceViews[0]);
-            renderer.DevContext.PixelShader.SetShaderResource(1, deferredRT.ShaderResourceViews[1]);
-            renderer.DevContext.PixelShader.SetShaderResource(2, deferredRT.ShaderResourceViews[2]);
-            renderer.DevContext.Draw(3, 0);
+            renderer.Draw(SharpDX.Direct3D.PrimitiveTopology.TriangleList, null, 3, 0);
 
             swapChain.Present();
         }
@@ -197,8 +196,7 @@ namespace CrpViewer {
             renderer.SetVertexShader(vDeferredCleanup);
             renderer.SetPixelShader(pDeferredCleanup);
             renderer.ApplyResources(renderer.Parameters);
-            renderer.DevContext.InputAssembler.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
-            renderer.DevContext.Draw(3, 0);
+            renderer.Draw(SharpDX.Direct3D.PrimitiveTopology.TriangleList, null, 3, 0);
         }
 
         private void AddEvents() {

@@ -1,4 +1,5 @@
-﻿using SharpDX.Direct3D11;
+﻿using System;
+using SharpDX.Direct3D11;
 using VertexShader = CrpViewer.Renderer.Shader.VertexShader;
 
 namespace CrpViewer.Renderer.Stages {
@@ -14,6 +15,10 @@ namespace CrpViewer.Renderer.Stages {
 
         protected override void BindConstantBuffers(DeviceContext dc, ParameterManager paramManager) {
             dc.VertexShader.SetConstantBuffers(DesiredState.ConstantBuffer.StartSlot, DesiredState.ConstantBuffer.Range, cBuffers);
+        }
+
+        protected override void BindShaderResources(DeviceContext dc) {
+            dc.VertexShader.SetShaderResources(DesiredState.Resources.StartSlot, DesiredState.Resources.Range, DesiredState.Resources.ChangedStates);
         }
     }
 }
