@@ -2,21 +2,17 @@
 using SharpDX;
 
 namespace CrpViewer.Renderer {
-    class Vector3Parameter : BaseConstantBufferParameter<Vector3> {
+    class Vector3Parameter : ConstantBufferParameter {
 
 
-        public Vector3Parameter() : base(sizeof(float)*3){
+        public Vector3Parameter(int offset=0) : base(RenderParameterType.VECTOR3,sizeof(float)*3, offset){
         }
 
-        public Vector3Parameter(Vector3 vec) : base(sizeof(float)*3, vec) {
+        public Vector3Parameter(Vector3 vec, int offset=0) : base(RenderParameterType.VECTOR3, sizeof(float)*3, offset, vec) {
         }
         
-        public override ConstantBufferParameterType GetParamType() {
-            return ConstantBufferParameterType.VECTOR3;
-        }
-
         protected override Array GetValArray() {
-            return val.ToArray();
+            return ((Vector3)Value).ToArray();
         }
     }
 }

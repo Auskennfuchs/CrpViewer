@@ -41,9 +41,8 @@ namespace CrpViewer.Renderer {
             }
         }
 
-        public void AddParameter(string name, int offset, IConstantBufferParameter param) {
-            ConstantBufferParameter c = new ConstantBufferParameter(name, offset, param);
-            members.Add(name, c);
+        public void AddParameter(string name, ConstantBufferParameter param) {
+            members.Add(name, param);
             Members.Add(name);
         }
 
@@ -68,9 +67,10 @@ namespace CrpViewer.Renderer {
         private void UpdateCpuBuffer(ParameterManager paramManager) {
             foreach (string key in members.Keys) {
                 ConstantBufferParameter param = members[key];
-                param.Value = paramManager.GetParameter(key).GetValue();
+                param.Value = paramManager.GetParameter(key).Value;
+                param.UpdateBuffer();
 
-                System.Buffer.BlockCopy(param.Param.GetBytes(), 0, cpuBuffer, param.Offset, param.Size);
+                System.Buffer.BlockCopy(param.Bytebuffer, 0, cpuBuffer, param.Offset, param.Size);
             }
         }
     }

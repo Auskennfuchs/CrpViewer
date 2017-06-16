@@ -1,103 +1,31 @@
-﻿namespace CrpViewer.Renderer {
-    public enum ConstantBufferParameterType {
-        MATRIX,
-        VECTOR3,
-        VECTOR4,
-        NUM_ELEM
-    }
+﻿using System;
 
-    public interface IConstantBufferParameter {
-        int GetSize();
-        object GetValue();
-        void SetValue(object obj);
-        byte[] GetBytes();
-        ConstantBufferParameterType GetParamType();
-    }
+namespace CrpViewer.Renderer {
 
-    public abstract class BaseConstantBufferParameter<T> : IConstantBufferParameter where T: struct{
+    public abstract class ConstantBufferParameter : RenderParameter {
 
-        protected int size;
-
-        protected T val;
-
-        public T Value {
-            get {
-                return val;
-            }
-            set {
-                val = value;
-                UpdateBuffer();
-            }
+        public byte[] Bytebuffer {
+            get; private set;
         }
 
-        private byte[] buffer;
-
-
-        public BaseConstantBufferParameter(int size) {
-            this.size = size;
-            buffer = new byte[size];
-        }
-
-        public BaseConstantBufferParameter(int size, T val) {
-            this.size = size;        
-            buffer = new byte[size];
-            this.val = val;
-        }    
-
-        public int GetSize() {
-            return size;
-        }
-        public byte[] GetBytes() {
-            return buffer;
-        }
-        public void SetValue(object obj) {
-            Value = (T)obj;
-        }
-        public object GetValue() {
-            return val;
-        }
-        public abstract ConstantBufferParameterType GetParamType();
-
-        private void UpdateBuffer() {
-            System.Buffer.BlockCopy(GetValArray(), 0, buffer, 0, size);
-        }
-
-        protected abstract System.Array GetValArray();
-    }
-
-    public class ConstantBufferParameter {
         public int Size {
-            get {
-                return param.GetSize();
-            }
-        }
-
-        public object Value {
-            get {
-                return param.GetValue();
-            }
-            set {
-                param.SetValue(value);
-            }
-        }
-
-        private IConstantBufferParameter param;
-        public IConstantBufferParameter Param {
-            get { return param; }
-        }
-
-        public string Name {
-            get;
+            get; private set;
         }
 
         public int Offset {
-            get;
+            get; private set;
         }
 
-        public ConstantBufferParameter(string name, int offset, IConstantBufferParameter param) {
-            Name = name;
+        public ConstantBufferParameter(RenderParameterType type, int size, int offset, object value=null) : base(type,value) {
+            Size = size;
             Offset = offset;
-            this.param = param;
+            Bytebuffer = new byte[size];
         }
+
+        public void UpdateBuffer() {
+            System.Buffer.BlockCopy(GetValArray(), 0, Bytebuffer, 0, Size);
+        }
+
+        protected abstract Array GetValArray();
     }
 }

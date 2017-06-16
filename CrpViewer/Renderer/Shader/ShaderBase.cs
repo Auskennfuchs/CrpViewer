@@ -81,18 +81,18 @@ namespace CrpViewer.Renderer.Shader {
                     switch (type.Description.Type) {
                         case ShaderVariableType.Float:
                             if (type.Description.RowCount == 4 && type.Description.ColumnCount == 4) {
-                                var matParam = new MatrixParameter();
-                                if (matParam.GetSize() != refVar.Description.Size) {
+                                var matParam = new MatrixParameter(refVar.Description.StartOffset);
+                                if (matParam.Size != refVar.Description.Size) {
                                     throw CrpRendererException.Create("Error ConstantBufferParamtersize");
                                 }
-                                constantBuffer.AddParameter(refVar.Description.Name, refVar.Description.StartOffset, matParam);
+                                constantBuffer.AddParameter(refVar.Description.Name, matParam);
                             }
                             if (type.Description.RowCount == 1 && type.Description.ColumnCount == 3) {
-                                var vec3Param = new Vector3Parameter();
-                                if (vec3Param.GetSize() != refVar.Description.Size) {
+                                var vec3Param = new Vector3Parameter(refVar.Description.StartOffset);
+                                if (vec3Param.Size != refVar.Description.Size) {
                                     throw CrpRendererException.Create("Error ConstantBufferParamtersize");
                                 }
-                                constantBuffer.AddParameter(refVar.Description.Name, refVar.Description.StartOffset, vec3Param);
+                                constantBuffer.AddParameter(refVar.Description.Name, vec3Param);
                             }
                             break;
                     }

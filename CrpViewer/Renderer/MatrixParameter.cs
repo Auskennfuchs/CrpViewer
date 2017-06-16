@@ -2,20 +2,16 @@
 using SharpDX;
 
 namespace CrpViewer.Renderer {
-    class MatrixParameter : BaseConstantBufferParameter<Matrix> {
+    class MatrixParameter : ConstantBufferParameter {
 
-        public MatrixParameter() : base(sizeof(float)*4*4){
+        public MatrixParameter(int offset=0) : base(RenderParameterType.MATRIX, sizeof(float)*4*4, offset) {
         }
 
-        public MatrixParameter(Matrix mat) : base(sizeof(float)*4*4, mat) {
+        public MatrixParameter(Matrix mat, int offset=0) : base(RenderParameterType.MATRIX, sizeof(float)*4*4, offset, mat) {
         }
         
-        public override ConstantBufferParameterType GetParamType() {
-            return ConstantBufferParameterType.MATRIX;
-        }
-
         protected override Array GetValArray() {
-            return val.ToArray();
+            return ((Matrix)Value).ToArray();
         }
     }
 }

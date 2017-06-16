@@ -119,6 +119,7 @@
     </Compile>
     <Compile Include="Material.cs" />
     <Compile Include="Renderer\Material.cs" />
+    <Compile Include="Renderer\RenderParameter.cs" />
     <Compile Include="Renderer\RenderTargetGroup.cs" />
     <Compile Include="Renderer\Stages\InputAssemblerStage.cs" />
     <Compile Include="Renderer\Stages\InputAssemblerStageState.cs" />

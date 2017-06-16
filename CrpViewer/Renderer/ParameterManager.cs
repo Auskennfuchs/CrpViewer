@@ -7,7 +7,7 @@ using SharpDX;
 
 namespace CrpViewer.Renderer {
     public class ParameterManager {
-        Dictionary<string, IConstantBufferParameter> parameters = new Dictionary<string, IConstantBufferParameter>();
+        Dictionary<string, RenderParameter> parameters = new Dictionary<string, RenderParameter>();
 
         private static string WORLDMATRIX = "worldMatrix";
         private static string VIEWMATRIX = "viewMatrix";
@@ -24,12 +24,12 @@ namespace CrpViewer.Renderer {
         }
 
         public void SetParameter(string name, Matrix mat) {
-            if (!SetParam(name, mat, ConstantBufferParameterType.MATRIX)) {
+            if (!SetParam(name, mat, RenderParameterType.MATRIX)) {
                 parameters.Add(name, new MatrixParameter(mat));
             }
         }
 
-        public IConstantBufferParameter GetParameter(string name) {
+        public RenderParameter GetParameter(string name) {
             if (parameters.ContainsKey(name)) {
                 return parameters[name];
             }
@@ -37,25 +37,25 @@ namespace CrpViewer.Renderer {
         }
 
         public Matrix GetMatrixParameter(string name) {
-            return (Matrix)GetParam(name, ConstantBufferParameterType.MATRIX);
+            return (Matrix)GetParam(name, RenderParameterType.MATRIX);
         }
 
         public void SetParameter(string name, Vector3 vec) {
-            if (!SetParam(name, vec, ConstantBufferParameterType.VECTOR3)) {
+            if (!SetParam(name, vec, RenderParameterType.VECTOR3)) {
                 parameters.Add(name, new Vector3Parameter(vec));
             }
         }
         public Vector3 GetVector3Parameter(string name) {
-            return (Vector3)GetParam(name, ConstantBufferParameterType.VECTOR3);
+            return (Vector3)GetParam(name, RenderParameterType.VECTOR3);
         }
 
         public void SetParameter(string name, Vector4 vec) {
-            if (!SetParam(name, vec, ConstantBufferParameterType.VECTOR4)) {
+            if (!SetParam(name, vec, RenderParameterType.VECTOR4)) {
                 throw new NotImplementedException();
             }
         }
         public Vector4 GetVector4Parameter(string name) {
-            return (Vector4)GetParam(name, ConstantBufferParameterType.VECTOR4);
+            return (Vector4)GetParam(name, RenderParameterType.VECTOR4);
         }
 
         public void SetWorldMatrix(Matrix world) {
@@ -71,33 +71,33 @@ namespace CrpViewer.Renderer {
             UpdateMatrices();
         }
 
-        private bool SetParam(string name, object obj, ConstantBufferParameterType type) {
+        private bool SetParam(string name, object obj, RenderParameterType type) {
             if (parameters.ContainsKey(name)) {
                 var param = parameters[name];
-                if (param.GetParamType() != type) {
+                if (param.Type != type) {
                     throw CrpRendererException.Create("Wrong Parametertype expected " + type + " but was " + param.GetType());
                 }
-                param.SetValue(obj);
+                param.Value = obj;
                 return true;
             }
             return false;
         }
 
-        private object GetParam(string name, ConstantBufferParameterType type) {
+        private object GetParam(string name, RenderParameterType type) {
             if (parameters.ContainsKey(name)) {
                 var param = parameters[name];
-                if (param.GetParamType() != type) {
+                if (param.Type != type) {
                     throw CrpRendererException.Create("Wrong Parametertype expected " + type + " but was " + param.GetType());
                 }
-                return param.GetValue();
+                return param.Value;
             }
             return null;
         }
 
         private void UpdateMatrices() {
-            Matrix world = (Matrix)GetParam(WORLDMATRIX, ConstantBufferParameterType.MATRIX);
-            Matrix view = (Matrix)GetParam(VIEWMATRIX, ConstantBufferParameterType.MATRIX);
-            Matrix proj = (Matrix)GetParam(PROJMATRIX, ConstantBufferParameterType.MATRIX);
+            Matrix world = (Matrix)GetParam(WORLDMATRIX, RenderParameterType.MATRIX);
+            Matrix view = (Matrix)GetParam(VIEWMATRIX, RenderParameterType.MATRIX);
+            Matrix proj = (Matrix)GetParam(PROJMATRIX, RenderParameterType.MATRIX);
             Matrix viewProj = view * proj;
             Matrix invViewProj = Matrix.Invert(viewProj);
             SetParameter(WORLDVIEWPROJMATRIX, world * view * proj);
